@@ -1,0 +1,86 @@
+#########################################################################################
+#                                                                                       #
+#                            QUADE CONFIGURATION FILE                                   #
+#                                                                                       #
+#########################################################################################                                                    
+
+#   Values can by customized with users values, but the file template must remain
+#   unchanged, otherwise the program will not be able to load default values.
+#   Please follow the following recommendations :
+#   - File path should be indicated as absolute path preferably and should not contain blank spaces
+#   - Values identified with '**' in the descriptor are not recommended to be modified
+#   -    
+
+##########
+[general]
+##########
+
+# Path where to create a folder in which all files generated during the program will
+# be stored. Can be leaved empty if you want to work in the current directory (string)
+outdir : ./my_folder
+
+
+##########
+[quality]
+##########
+
+# Minimal mean quality of the index to be considered a valid read pair
+index_qual : 20
+
+# Minimal mean quality of reads to be considered a valid read pair
+read_qual : 30
+
+# Output read with an invalid mate (based on quality) in a separate file 
+output_unmapaired : True
+
+##########
+[index]
+##########
+
+# Define the existence of sample indexes and molecular indexes
+
+# Sample index 1 
+sample1 = True
+
+# Sample index 2 if double indexing
+sample2 = False
+
+# Molecular index 1 if stochastic index was added after sample index 1
+molecular1 = False
+
+# Molecular index 2 if stochastic index was added after sample index 2
+molecular2 = False
+
+# Definition of sample and molecular indexes positions within in index read using 0 base coordinates : start end 
+# start position and end position for each sample separate by a blank space 
+
+sample1_pos : 0 5
+sample2_pos : 0 5
+molecular1_pos : 6 11
+molecular2_pos : 6 11
+
+###############################
+#    SAMPLE DEFINITIONS    #
+###############################
+
+#   It is possible to include as many independant sample as required by duplicating
+#   a entire sample section and updating the id number starting at 1.
+
+[sample1]
+
+# basename that will be used to prefix the read files
+name : S1
+
+# Index sequences associated with the sample. Index 2 
+index1_seq : ATCGT
+index2_seq : TTGTG
+
+[sample2]
+
+# basename that will be used to prefix the read files
+name : S2
+
+# Index sequences associated with the sample. Index 2 
+index1_seq : ATCGT
+index2_seq : TTGTG
+
