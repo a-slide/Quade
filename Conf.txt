@@ -4,8 +4,7 @@
 #                                                                                       #
 #########################################################################################                                                    
 
-#   Values can by customized with users values, but the file template must remain
-#   unchanged, otherwise the program will not be able to load default values.
+#   Values can by customized with users values, but the file template must remain unchanged, otherwise the program will not be able to load default values.
 #   Please follow the following recommendations :
 #   - File path should be indicated as absolute path preferably and should not contain blank spaces
 #   - Values identified with '**' in the descriptor are not recommended to be modified
@@ -15,23 +14,21 @@
 [general]
 ##########
 
-# Path where to create a folder in which all files generated during the program will
-# be stored. Can be leaved empty if you want to work in the current directory (string)
+# Path where to create a folder in which all files generated during the program will be stored. Can be leaved empty if you want to work in the current directory (string)
 outdir : ./my_folder
-
 
 ##########
 [quality]
 ##########
 
 # Minimal mean quality of the index to be considered a valid read pair
-index_qual : 20
+index_mean_qual : 30
 
-# Minimal mean quality of reads to be considered a valid read pair
-read_qual : 30
+# Minimal quality for one base of the index to be considered a valid read pair
+index_min_qual : 20
 
-# Output read with an invalid mate (based on quality) in a separate file 
-output_unmapaired : True
+# Fastq quality scale
+quality_scale : fastq_sanger
 
 ##########
 [index]
@@ -63,15 +60,14 @@ molecular2_pos : 6 11
 #    SAMPLE DEFINITIONS    #
 ###############################
 
-#   It is possible to include as many independant sample as required by duplicating
-#   a entire sample section and updating the id number starting at 1.
+# It is possible to include as many independant sample as required by duplicating a entire sample section and updating the id number starting at 1.
 
 [sample1]
 
 # basename that will be used to prefix the read files
 name : S1
 
-# Index sequences associated with the sample. Index 2 
+# Index sequences associated with the sample. Index 2 is used only in case of double indexing
 index1_seq : ATCGT
 index2_seq : TTGTG
 
@@ -80,7 +76,7 @@ index2_seq : TTGTG
 # basename that will be used to prefix the read files
 name : S2
 
-# Index sequences associated with the sample. Index 2 
-index1_seq : ATCGT
-index2_seq : TTGTG
+# Index sequences associated with the sample. Index 2 is used only in case of double indexing
+index1_seq : ATCCT
+index2_seq : TTGGG
 
