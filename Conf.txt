@@ -14,7 +14,7 @@
 ##########
 
 # Path where to create a folder in which all files generated during the program will be stored. Can be leaved empty if you want to work in the current directory (string)
-outdir : ./my_folder
+outdir : 
 
 ##########
 [quality]
@@ -26,55 +26,81 @@ mean_qual : 30
 # Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering requested. (INTEGER)
 minimal_qual : 20
 
-# Quality format associated with reads autorized values are : 'fastq-sanger' 'fastq-solexa' or 
-# 'fastq-illumina'. See Biopython QualityIO documentation for more details. (STRING)
-quality_scale : fastq_sanger
+# Quality format associated with reads autorized values are : solexa-old, solexa-old or phred. See HTSeq documentation for more details. (STRING)
+quality_scale : phred
+
+##########
+[fastq]
+##########
+
+# Path to the fastq files containing non demultiplexed sequences. Since fastq splited in several chunks of data a list of fastq can be given for each categories
+# chunks need to be indicated in the same order in all categories.   
+
+# list of path to chunks of fastq file containing the forward insert sequencing reads (usually R1)
+seq_R1 : ./test/C01_R1.fastq.gz ./test/C02_R1.fastq.gz
+
+# list of path to chunks of fastq file containing the reverse insert sequencing reads (usually R3)
+seq_R2 : ./test/C01_R3.fastq.gz ./test/C02_R3.fastq.gz
+
+# list of path to chunks of fastq file containing the first index reads (usually R2)
+index_R1 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
+
+# list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
+index_R2 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
+
 
 ##########
 [index]
 ##########
 
-# For each possible index indicate by a boolean its usage or not. If not you can lease the position coordinates empty, else indicate the start and end positions within in index read using 0 base coordinates
+# At the exception of index 1 which is mandatory, indicate by a boolean if the index is to be used or not.
+# If not you can leave the start and end sections empty, else indicate the start and end positions within in index read using 0 base coordinates
 
-# Sample index 1
-# True if in usage else False
-index1 = True
-#start and end positions (INTEGER)
+# Sample index 1 start and end 0 based coordinates [MANDATORY] (INTEGERS)
 index1_start : 0
 index1_end : 5
 
-# Sample index 2 start and end positions [if double indexing] (INTEGER)
-index2 = True
-index2_start : 0
-index2_end : 5
+# Sample index 2 True if double indexing only (BOOLEAN)
+index2 : True
 
-# Molecular index 1 if stochastic index was added after sample index 1 (INTEGER)
-molecular1 = False
+# Sample index 2 start and end 0 based coordinates (INTEGERS)
+index2_start : 0	
+index2_end : 76
+
+# Molecular index 1 True if stochastic index was added after sample index 1  (BOOLEAN)
+# True if in usage else False
+molecular1 : False
+
+# Molecular index 1 start and end 0 based coordinates (INTEGERS)
 molecular1_start :
 molecular1_end :
 
-# Molecular index 2 if stochastic index was added after sample index 2 (INTEGER)
-molecular2 = False
+# Molecular index 2 True if stochastic index was added after sample index 2 (BOOLEAN)
+molecular2 : False
+
+# Molecular index 2 start and end 0 based coordinates (INTEGERS)
 molecular2_start :
 molecular2_end :
+
 
 ###############################
 #    SAMPLE DEFINITIONS       #
 ###############################
 
 # It is possible to include as many independant sample as required by duplicating a entire sample section and incrementing the id number in the sample section name
+# All sample name and index have to be uniq
 
 [sample1] 
 # basename that will be used to prefix the read files (STRING)
 name : S1
-# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING)
+# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
 index1_seq : ATCGT
-index2_seq : TTGTG
+index2_seq : TTGAATGA
 
 [sample2]
 # basename that will be used to prefix the read files (STRING)
 name : S2
-# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING)
-index1_seq : ATCCT
-index2_seq : TTGGG
+# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
+index1_seq : ATC
+index2_seq :
 
