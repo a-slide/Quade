@@ -27,7 +27,7 @@ mean_qual : 30
 minimal_qual : 20
 
 # Quality format associated with reads autorized values are : solexa-old, solexa-old or phred. See HTSeq documentation for more details. (STRING)
-quality_scale : phred
+qual_scale : phred
 
 ##########
 [fastq]
@@ -46,7 +46,7 @@ seq_R2 : ./test/C01_R3.fastq.gz ./test/C02_R3.fastq.gz
 index_R1 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
 
 # list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
-index_R2 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
+index_R2 : 
 
 
 ##########
@@ -61,11 +61,11 @@ index1_start : 0
 index1_end : 5
 
 # Sample index 2 True if double indexing only (BOOLEAN)
-index2 : True
+index2 : False
 
 # Sample index 2 start and end 0 based coordinates (INTEGERS)
-index2_start : 0	
-index2_end : 76
+index2_start :	
+index2_end :
 
 # Molecular index 1 True if stochastic index was added after sample index 1  (BOOLEAN)
 # True if in usage else False
@@ -94,13 +94,13 @@ molecular2_end :
 # basename that will be used to prefix the read files (STRING)
 name : S1
 # Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
-index1_seq : ATCGT
-index2_seq : TTGAATGA
+index1_seq : ATCGTT
+index2_seq : 
 
 [sample2]
 # basename that will be used to prefix the read files (STRING)
 name : S2
 # Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
-index1_seq : ATC
+index1_seq : AATTGT
 index2_seq :
 
