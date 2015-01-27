@@ -54,4 +54,4 @@ docs/_build/
 target/
 
 # do not git test folder content
-#test/
+test/

@@ -10,13 +10,6 @@
 #   - Values identified with '**' in the descriptor are not recommended to be modified
 
 ##########
-[general]
-##########
-
-# Path where to create a folder in which all files generated during the program will be stored. Can be leaved empty if you want to work in the current directory (string)
-outdir : 
-
-##########
 [quality]
 ##########
 
@@ -46,8 +39,7 @@ seq_R2 : ./test/C01_R3.fastq.gz ./test/C02_R3.fastq.gz
 index_R1 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
 
 # list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
-index_R2 : 
-
+index_R2 : ./test/C01_R2.fastq.gz ./test/C02_R2.fastq.gz
 
 ##########
 [index]
@@ -62,25 +54,22 @@ index1_end : 5
 
 # Sample index 2 True if double indexing only (BOOLEAN)
 index2 : False
-
 # Sample index 2 start and end 0 based coordinates (INTEGERS)
-index2_start :	
-index2_end :
+index2_start : 0
+index2_end : 5
 
 # Molecular index 1 True if stochastic index was added after sample index 1  (BOOLEAN)
 # True if in usage else False
 molecular1 : False
-
 # Molecular index 1 start and end 0 based coordinates (INTEGERS)
-molecular1_start :
-molecular1_end :
+molecular1_start : 6
+molecular1_end : 10
 
-# Molecular index 2 True if stochastic index was added after sample index 2 (BOOLEAN)
+# Molecular index 2 True if if double indexing only and stochastic index was added after sample index 2 (BOOLEAN)
 molecular2 : False
-
 # Molecular index 2 start and end 0 based coordinates (INTEGERS)
-molecular2_start :
-molecular2_end :
+molecular2_start : 6
+molecular2_end : 10
 
 
 ###############################
@@ -93,14 +82,41 @@ molecular2_end :
 [sample1] 
 # basename that will be used to prefix the read files (STRING)
 name : S1
-# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
-index1_seq : ATCGTT
-index2_seq : 
-
-[sample2]
-# basename that will be used to prefix the read files (STRING)
-name : S2
-# Index sequences associated with the sample. Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
-index1_seq : AATTGT
+# Index sequences associated with the sample.Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
+index1_seq : ACAGTG
 index2_seq :
 
+[sample2]
+name : S2
+index1_seq : CTTGTA
+index2_seq :
+
+[sample3]
+name : S3
+index1_seq : AGTCAA
+index2_seq :
+
+[sample4]
+name : S4
+index1_seq : GTGAAA
+index2_seq :
+
+[sample5]
+name : S5
+index1_seq : TGACCA
+index2_seq :
+
+[sample6]
+name : S6
+index1_seq : CAGATC
+index2_seq :
+
+[sample7]
+name : S7
+index1_seq : GCCAAT
+index2_seq :
+
+[sample8]
+name : S8
+index1_seq : CGATGT
+index2_seq :
