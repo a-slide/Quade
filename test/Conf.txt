@@ -30,13 +30,13 @@ qual_scale : phred
 # chunks need to be indicated in the same order in all categories.   
 
 # list of path to chunks of fastq file containing the forward insert sequencing reads (usually R1)
-seq_R1 : ./fastq/not_demultiplexed_NoIndex_L001_R1_001.fastq.gz ./fastq/not_demultiplexed_NoIndex_L001_R1_002.fastq.gz
+seq_R1 : ./fastq/R1_001_100000.fastq.gz ./fastq/R1_002_100000.fastq.gz ./fastq/R1_003_100000.fastq.gz
 
 # list of path to chunks of fastq file containing the reverse insert sequencing reads (usually R3)
-seq_R2 : ./fastq/not_demultiplexed_NoIndex_L001_R3_001.fastq.gz ./fastq/not_demultiplexed_NoIndex_L001_R3_002.fastq.gz
+seq_R2 : ./fastq/R3_001_100000.fastq.gz ./fastq/R3_002_100000.fastq.gz ./fastq/R3_003_100000.fastq.gz
 
 # list of path to chunks of fastq file containing the first index reads (usually R2)
-index_R1 : ./fastq/not_demultiplexed_NoIndex_L001_R2_001.fastq.gz ./fastq/not_demultiplexed_NoIndex_L001_R2_002.fastq.gz
+index_R1 : ./fastq/R2_001_100000.fastq.gz ./fastq/R2_002_100000.fastq.gz ./fastq/R2_003_100000.fastq.gz
 
 # list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
 index_R2 : 
