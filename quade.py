@@ -54,10 +54,10 @@ class Quade(object):
             self.molecular2 = self.index2 and cp.getboolean("index", "molecular2")
 
             # Positions of subindex
-            self.index1_pos = [cp.getint("index", "index1_start"), cp.getint("index", "index1_end")] if self.index1 else [0,0]
-            self.index2_pos = [cp.getint("index", "index2_start"), cp.getint("index", "index2_end")] if self.index2 else [0,0]
-            self.molecular1_pos = [cp.getint("index", "molecular1_start"), cp.getint("index", "molecular1_end")] if self.molecular1 else [0,0]
-            self.molecular2_pos = [cp.getint("index", "molecular2_start"), cp.getint("index", "molecular2_end")] if self.molecular2 else [0,0]
+            self.index1_pos = [cp.getint("index", "index1_start")-1, cp.getint("index", "index1_end")] if self.index1 else [0,0]
+            self.index2_pos = [cp.getint("index", "index2_start")-1, cp.getint("index", "index2_end")] if self.index2 else [0,0]
+            self.molecular1_pos = [cp.getint("index", "molecular1_start")-1, cp.getint("index", "molecular1_end")] if self.molecular1 else [0,0]
+            self.molecular2_pos = [cp.getint("index", "molecular2_start")-1, cp.getint("index", "molecular2_end")] if self.molecular2 else [0,0]
 
             # List of fastqfiles
             self.seq_R1 = cp.get("fastq", "seq_R1").split()
@@ -73,7 +73,7 @@ class Quade(object):
                 index_seq = cp.get(sample, "index1_seq")+(cp.get(sample, "index2_seq") if self.index2 else "")
                 # Create a autoreferenced Sample_identifier object
                 Sample_identifier(name = cp.get(sample, "name"), index = index_seq)
-
+            
             # Values are tested in a private function
             self._test_values()
 
@@ -111,12 +111,6 @@ class Quade(object):
         out_list = self.worker(in_list)
         print("WRITE DEMULTIPLEXED FASTQ")
         self.writer(out_list)
-
-        #for s1, s2, sample_name, quality_passed in out_list:
-            #if not quality_passed and sample_name != "Undetermined":
-                #print ("{}\t {}...".format(s1.name, s1.seq))
-                #print ("{}\t {}...".format(s2.name, s2.seq))
-                #print ("{}\t {}\n".format(sample_name, quality_passed))
 
     def reader (self):
         """
@@ -168,8 +162,8 @@ class Quade(object):
             for s1, s2, i1, i2 in in_list:
 
                 # Extract index and molecular sequences from index reads and merge them
-                index = i1[self.index1_pos[0]:self.index1_pos[1]]+i2[self.index2_pos[0]:self.index2_pos[1]]
-                molecular = i1[self.molecular1_pos[0]:self.molecular1_pos[1]]+i2[self.molecular2_pos[0]:self.molecular2_pos[1]]
+                index = i1.seq[self.index1_pos[0]:self.index1_pos[1]]+i2.seq[self.index2_pos[0]:self.index2_pos[1]]
+                molecular = i1.seq[self.molecular1_pos[0]:self.molecular1_pos[1]]+i2.seq[self.molecular2_pos[0]:self.molecular2_pos[1]]
 
                 # Identify sample correspondance and verify index quality
                 sample_name = Sample_identifier.index_coresp(index)
@@ -188,9 +182,9 @@ class Quade(object):
             for s1, s2, i1 in in_list:
 
                 # Extract index and molecular sequences from index read
-                index = i1[self.index1_pos[0]:self.index1_pos[1]]
-                molecular = i1[self.molecular1_pos[0]:self.molecular1_pos[1]]
-
+                index = i1.seq[self.index1_pos[0]:self.index1_pos[1]]
+                molecular = i1.seq[self.molecular1_pos[0]:self.molecular1_pos[1]]
+                
                 # Identify sample correspondance and verify index quality
                 sample_name = Sample_identifier.index_coresp(index)
                 if not self._quality_filter(i1):
@@ -207,14 +201,23 @@ class Quade(object):
 
     def writer (self, out_list):
         """
+        Simple and naive version of fastq writer
         """
-
+        sample_dict = {}
         for s1, s2, sample_name in out_list:
-            with gzip.open ("./{}_R1.fastq.gz".format(sample_name), 'ab') as fastq_file:
-                fastq_file.write("@{}\n{}\n+\n{}\n".format(s1.name, s1.seq, s1.qualstr))
-            with gzip.open ("./{}_R2.fastq.gz".format(sample_name), 'ab') as fastq_file:
-                fastq_file.write("@{}\n{}\n+\n{}\n".format(s2.name, s2.seq, s2.qualstr))
-
+            
+            # Use of a exception handling to limit the number of test
+            try:
+                # Add new reads to the sample
+                sample_dict[sample_name](s1, s2)
+            
+            except KeyError:
+                # Create a new sample_aggretor  and add new reads to the sample
+                sample_dict[sample_name] = Sample_writer(sample_name)
+                sample_dict[sample_name](s1, s2)
+        
+        for sample in sample_dict.values():
+            sample.flush()
 
     #~~~~~~~PRIVATE METHODS~~~~~~~#
 
@@ -256,19 +259,10 @@ class Quade(object):
             is_readable_file (self.seq_R1 + self.seq_R2 + self.index_R1)
 
         # Verify values of the index section
-        assert self.index1_start >= 0, "Autorized values for index1_start : >= 0"
-        assert self.index1_end >= self.index1_start, "Autorized values for index1_end : > index1_start"
-        if self.index2:
-            assert self.index2_start >= 0, "Autorized values for index2_start : >= 0"
-            assert self.index2_end >= self.index2_start, "Autorized values for index2_end : > index2_start"
-        if self.molecular1:
-            assert self.molecular1_start >= 0, "Autorized values for molecular1_start : >= 0"
-            assert self.molecular1_end >= self.molecular1_start, "Autorized values for molecular_end : > molecular1_start"
-        if self.molecular2:
-            assert self.molecular2_start >= 0, "Autorized values for molecular2_start : >= 0"
-            assert self.molecular2_end >= self.molecular2_start, "Autorized values for molecular2_end : > molecular2_start"
-
-
+        for start, end in [self.index1_pos, self.index2_pos, self.molecular1_pos, self.molecular2_pos]:
+            assert start >= 0
+            assert end >= start
+        
     def _quality_filter(self, fastq):
 
         # test if all base are > minimal quality
@@ -297,7 +291,7 @@ class Sample_identifier(object):
 
     @ classmethod
     def index_coresp (self, index):
-        return Index_seq_access.get(index, "Undetermined")
+        return self.Index_seq_to_name.get(index, "Undetermined")
 
     @ classmethod
     def all_get (self, key):
@@ -325,7 +319,7 @@ class Sample_identifier(object):
 
     # Fundamental class functions str and repr
     def __repr__(self):
-        return "Sample ID:{}\tName : {}\tINDEX : {}".format(self.ID, self.name, self.index)
+        return "SAMPLE\tName : {}\tINDEX : {}".format(self.name, self.index)
 
     def __str__(self):
         return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
@@ -342,10 +336,69 @@ class Sample_identifier(object):
         return True
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#class Sample_aggregator(object):
+class Sample_writer(object):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Will received sample_name id = responssible for bufferized writting of fastq
 
+    def __init__ (self, name):
+        
+        # Define self variables
+        self.name = name
+       
+        # Counters
+        self.total_pair = 0
+        self.current_pair = 0
+        
+        # Str aggregators
+        self.R1_buffer = ""
+        self.R2_buffer = ""
+        
+        # File names
+        self.R1_file = "./{}_R1.fastq.gz".format(self.name)
+        self.R2_file = "./{}_R2.fastq.gz".format(self.name)
+        
+        # Init empty files
+        with gzip.open (self.R1_file, 'wb'):
+            pass
+        with gzip.open (self.R2_file, 'wb'):
+            pass
+            
+        
+    # Fundamental class functions str and repr
+    #def __repr__(self):
+        #return "SAMPLE\tName : {}\tINDEX : {}".format(self.name, self.index)
+
+    def __str__(self):
+        return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
+
+    # Function allowing to acces objet self values with key (ex sample[id])
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    #~~~~~~~PUBLIC METHODS~~~~~~~#
+    
+    def __call__(self, read1, read2):
+        
+        self.R1_buffer += "@{}\n{}\n+\n{}\n".format(read1.name, read1.seq, read1.qualstr)
+        self.R2_buffer += "@{}\n{}\n+\n{}\n".format(read2.name, read2.seq, read2.qualstr)
+        
+        self.total_pair += 1
+        self.current_pair += 1
+        
+        # If buffers contains more that 1000 sequences, write in file and reset the counter 
+        if self.current_pair >= 1000:
+            self.flush()
+            self.current_pair = 0
+
+    def flush(self):
+        
+        # Append the content of the buffers in file and reset the buffers
+        with gzip.open (self.R1_file, 'ab') as fastq_file:
+            fastq_file.write(self.R1_buffer)
+            self.R1_buffer = ""
+            
+        with gzip.open (self.R2_file, 'ab') as fastq_file:
+            fastq_file.write(self.R2_buffer)
+            self.R2_buffer = ""
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #   TOP LEVEL INSTRUCTIONS
