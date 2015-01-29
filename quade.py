@@ -18,9 +18,9 @@ class Quade(object):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
     #~~~~~~~FONDAMENTAL METHODS~~~~~~~#
-    
+
     def __init__ (self, conf_file = None):
-        
+
         """
         Initialization function, parse options in command line and configuration file and verify
         their values. All self.variables are initialized explicitly in init/
@@ -28,65 +28,51 @@ class Quade(object):
         command line arguments
         """
         print("INITIALIZE QUADE")
-        
+
         # Define fundamental variables
         self.version = "quade 0.1"
         self.usage = "Usage: %prog -c Conf.txt"
 
         # Use Conf file if interactive interpreter else parse arguments with optparse
-        if conf_file:
-            self.conf = conf_file
-        else:
-            self.conf = self._optparser()
-        
+        self.conf = conf_file if conf_file else self._optparser()
+
         # Parse the configuration file and verify the values of variables
         try:
             # Define a configuration file parser object and load the configuration file
             cp = ConfigParser.RawConfigParser(allow_no_value=True)
             cp.read(self.conf)
 
-            # Get Values from the conf file
+            # Quality section
             self.mean_qual = cp.getint("quality", "mean_qual")
             self.minimal_qual = cp.getint("quality", "minimal_qual")
             self.qual_scale = cp.get("quality", "qual_scale")
+
+            # Boolean flag of subindex presence
+            self.index1 = True
+            self.index2 = cp.getboolean("index", "index2")
+            self.molecular1 = self.index1 and cp.getboolean("index", "molecular1")
+            self.molecular2 = self.index2 and cp.getboolean("index", "molecular2")
+
+            # Positions of subindex
+            self.index1_pos = [cp.getint("index", "index1_start"), cp.getint("index", "index1_end")] if self.index1 else [0,0]
+            self.index2_pos = [cp.getint("index", "index2_start"), cp.getint("index", "index2_end")] if self.index2 else [0,0]
+            self.molecular1_pos = [cp.getint("index", "molecular1_start"), cp.getint("index", "molecular1_end")] if self.molecular1 else [0,0]
+            self.molecular2_pos = [cp.getint("index", "molecular2_start"), cp.getint("index", "molecular2_end")] if self.molecular2 else [0,0]
+
+            # List of fastqfiles
             self.seq_R1 = cp.get("fastq", "seq_R1").split()
             self.seq_R2 = cp.get("fastq", "seq_R2").split()
-
-            # For each index verify its existence and store start and end positions if needed
-            self.index1_start = cp.getint("index", "index1_start")
-            self.index1_end = cp.getint("index", "index1_end")
-            self.index_R1 = cp.get("fastq", "index_R1").split()
-            
-            self.index2 = cp.getboolean("index", "index2")
-            self.molecular1 = cp.getboolean("index", "molecular1")
-            self.molecular2 = self.index2 and cp.getboolean("index", "molecular2")
-            
-            if self.index2:
-                self.index_R2 = cp.get("fastq", "index_R2").split()
-                self.index2_start = cp.getint("index", "index2_start")
-                self.index2_end = cp.getint("index", "index2_end")
-            
-            if self.molecular1:
-                self.molecular1_start = cp.getint("index", "molecular1_start")
-                self.molecular1_end = cp.getint("index", "molecular1_end")
-            
-            if self.molecular2:
-                self.molecular2_start = cp.getint("index", "molecular2_start")
-                self.molecular2_end = cp.getint("index", "molecular2_end")
+            self.index_R1 = cp.get("fastq", "index_R1").split() if self.index1 else []
+            self.index_R2 = cp.get("fastq", "index_R2").split() if self.index2 else []
 
             # Samples are a special case since the number of sections is variable
-            # Iterate only on sections starting by "sample" and create a autoreferenced Sample object
+            # Iterate only on sections starting by "sample"
             for sample in [i for i in cp.sections() if i.startswith("sample")]:
-                
-                if self.index2:
-                    Sample_identifier(
-                        name = cp.get(sample, "name"),
-                        index1 = cp.get(sample, "index1_seq"),
-                        index2 = cp.get(sample, "index2_seq"))
-                else:
-                    Sample_identifier(
-                        name = cp.get(sample, "name"),
-                        index1 = cp.get(sample, "index1_seq"))
+
+                # Fuse index if needed
+                index_seq = cp.get(sample, "index1_seq")+(cp.get(sample, "index2_seq") if self.index2 else "")
+                # Create a autoreferenced Sample_identifier object
+                Sample_identifier(name = cp.get(sample, "name"), index = index_seq)
 
             # Values are tested in a private function
             self._test_values()
@@ -118,98 +104,105 @@ class Quade(object):
     def __call__(self):
         """
         Main function of the script
-        """     
+        """
         print("READ FASTQ FILES")
         in_list = self.reader()
         print("PROCESS INDEX AND IDENTIFY SAMPLES")
         out_list = self.worker(in_list)
         print("WRITE DEMULTIPLEXED FASTQ")
         self.writer(out_list)
-        
+
         #for s1, s2, sample_name, quality_passed in out_list:
             #if not quality_passed and sample_name != "Undetermined":
                 #print ("{}\t {}...".format(s1.name, s1.seq))
                 #print ("{}\t {}...".format(s2.name, s2.seq))
                 #print ("{}\t {}\n".format(sample_name, quality_passed))
-    
+
     def reader (self):
         """
         Read fatsq files
         """
         # Init empty list to store read sets
         in_list = []
-        
-        # Different for simple or double indexing due to a different number of file to handle 
+
+        # For double indexing
         if self.index2:
             # Iterate over fastq chunks for sequence and index reads
             for S1, S2, I1, I2 in zip(self.seq_R1, self.seq_R2, self.index_R1, self.index_R2):
-                
+
                 # Init HTSeq fastq reader generator
                 S1_gen = HTSeq.FastqReader(S1, qual_scale=self.qual_scale)
                 S2_gen = HTSeq.FastqReader(S2, qual_scale=self.qual_scale)
                 I1_gen = HTSeq.FastqReader(I1, qual_scale=self.qual_scale)
                 I2_gen = HTSeq.FastqReader(I2, qual_scale=self.qual_scale)
-                
+
                 # Iterate over read in fastq files and put each set in a list
                 for s1, s2, i1, i2 in zip (S1_gen, S2_gen, I1_gen, I2_gen):
                     in_list.append([s1, s2 ,i1 ,i2])
-        
+
+        # For simple indexing
         else:
             # Iterate over fastq chunks for sequence and index reads
             for S1, S2, I1 in zip(self.seq_R1, self.seq_R2, self.index_R1):
-                
+
                 # Init HTSeq fastq reader generator
                 S1_gen = HTSeq.FastqReader(S1, qual_scale=self.qual_scale)
                 S2_gen = HTSeq.FastqReader(S2, qual_scale=self.qual_scale)
                 I1_gen = HTSeq.FastqReader(I1, qual_scale=self.qual_scale)
-                
+
                 # Iterate over read in fastq files and put each set in a list
                 for s1, s2 ,i1 in zip (S1_gen, S2_gen, I1_gen):
                     in_list.append([s1, s2 ,i1])
-            
+
         return in_list
-    
+
     def worker (self, in_list):
         """
         filter and asign sample to a set of fastq reads
         """
         # Init empty list to store read sets
         out_list = []
-        
-        # Again it's different for simple or double indexing 
+
+        # For double indexing
         if self.index2:
             for s1, s2, i1, i2 in in_list:
-                index1, molecular1 = self._extract_index(i1)
-                index2, molecular2 = self._extract_index(i2)
-                sample_name = Sample_identifier.index_coresp(index1, index2)
+
+                # Extract index and molecular sequences from index reads and merge them
+                index = i1[self.index1_pos[0]:self.index1_pos[1]]+i2[self.index2_pos[0]:self.index2_pos[1]]
+                molecular = i1[self.molecular1_pos[0]:self.molecular1_pos[1]]+i2[self.molecular2_pos[0]:self.molecular2_pos[1]]
+
+                # Identify sample correspondance and verify index quality
+                sample_name = Sample_identifier.index_coresp(index)
                 if not self._quality_filter(i1) or not self._quality_filter(i2):
                     sample_name+="_fail_qual"
-                
-                if molecular1 or molecular2:
-                    s1.name += ":{}{}:{}{}:".format(index1, index2, molecular1, molecular2)
-                    s2.name += ":{}{}:{}{}:".format(index1, index2, molecular1, molecular2)
-                else:
-                    s1.name += ":{}{}:".format(index1, index2)
-                    s2.name += ":{}{}:".format(index1, index2)
-                
+
+                # Suffix read name with index and molecular sequence
+                suffix = ":"+index+":"+molecular+":" if molecular else ":"+index+":"
+                s1.name += suffix
+                s2.name += suffix
+
                 out_list.append([s1, s2, sample_name])
 
+        # For simple indexing
         else:
             for s1, s2, i1 in in_list:
-                index1, molecular1 = self._extract_index(i1)
-                sample_name = Sample_identifier.index_coresp(index1)
+
+                # Extract index and molecular sequences from index read
+                index = i1[self.index1_pos[0]:self.index1_pos[1]]
+                molecular = i1[self.molecular1_pos[0]:self.molecular1_pos[1]]
+
+                # Identify sample correspondance and verify index quality
+                sample_name = Sample_identifier.index_coresp(index)
                 if not self._quality_filter(i1):
                     sample_name+="_fail_qual"
-                
-                if molecular1:
-                    s1.name += ":{}:{}:".format(index1, molecular1)
-                    s2.name += ":{}:{}:".format(index1, molecular1)
-                else:
-                    s1.name += ":{}:".format(index1)
-                    s2.name += ":{}:".format(index1, molecular1)
-                
+
+                # Suffix read name with index and molecular sequence
+                suffix = ":"+index+":"+molecular+":" if molecular else ":"+index+":"
+                s1.name += suffix
+                s2.name += suffix
+
                 out_list.append([s1, s2, sample_name])
-        
+
         return out_list
 
     def writer (self, out_list):
@@ -221,8 +214,8 @@ class Quade(object):
                 fastq_file.write("@{}\n{}\n+\n{}\n".format(s1.name, s1.seq, s1.qualstr))
             with gzip.open ("./{}_R2.fastq.gz".format(sample_name), 'ab') as fastq_file:
                 fastq_file.write("@{}\n{}\n+\n{}\n".format(s2.name, s2.seq, s2.qualstr))
-            
-            
+
+
     #~~~~~~~PRIVATE METHODS~~~~~~~#
 
     def _optparser(self):
@@ -275,20 +268,21 @@ class Quade(object):
             assert self.molecular2_start >= 0, "Autorized values for molecular2_start : >= 0"
             assert self.molecular2_end >= self.molecular2_start, "Autorized values for molecular2_end : > molecular2_start"
 
-    def _extract_index(self, index): #######################################################################################################################
-        return (index.seq, "")
-        
+
     def _quality_filter(self, fastq):
+
+        # test if all base are > minimal quality
         for val in fastq.qual:
             if val < self.minimal_qual:
                 return False
-        
+
+        # test if index mean qual > mean qual
         if sum(fastq.qual)/len(fastq) < self.mean_qual:
             return False
-        
+
         return True
-        
-        
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class Sample_identifier(object):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -296,73 +290,61 @@ class Sample_identifier(object):
     #~~~~~~~CLASS FIELDS~~~~~~~#
 
     Instances = [] # Class field used for instance tracking
-    ID_count = 1
+    Index_seq_to_name = {}
     DNA = ["A","T","C","G"]
 
     #~~~~~~~CLASS METHODS~~~~~~~#
 
     @ classmethod
-    def next_ID (self):
-        current = self.ID_count
-        self.ID_count +=1
-        return current
-    
-    @ classmethod
-    def index_coresp (self, index1, index2=""):
-        index = index1+index2
-        for sample in self.Instances:
-            if index == sample.index:
-                return sample.name
-        return "Undetermined"
-    
+    def index_coresp (self, index):
+        return Index_seq_access.get(index, "Undetermined")
+
     @ classmethod
     def all_get (self, key):
         # Return a list of a self variable from all sample objects
         return [sample[key] for sample in self.Instances]
 
     #~~~~~~~FUNDAMENTAL METHODS~~~~~~~#
-    
-    def __init__ (self, name, index1, index2=""):
-        
-        # Store object variables
-        #print ("Creating Sample_identifier object {}".format(name))
-               
-        # Name uniqness
-        assert name not in self.all_get("name"), "{} : Name is not unique".format(name)
+
+    def __init__ (self, name, index):
+
+        # Create self variables
         self.name = name
-        
-        # Index combination uniqueness is verified and DNA sequence
-        index = (index1+index2).upper()
-        assert index not in self.all_get("index"), "{} : Index is not unique".format(name)
-        assert self._is_dna(index), "{} : Non canonical DNA base in index".format(name)
-        self.index = index
-        
-        # Attibute an id and append sample object to the Instance list
-        self.ID = self.next_ID()
+        self.index = index.upper()
+
+        # test uniqueness of name and index and DNA composition of index
+        assert self.name not in self.all_get("name"), "{} : Name is not unique".format(self.name)
+        assert self.index not in self.all_get("index"), "{} : Index is not unique".format(self.name)
+        assert self._is_dna(index), "{} : Non canonical DNA base in index".format(self.name)
+
+        # Append sample object to the class list of Instance
         self.Instances.append(self)
-        
+
+        # Add sample object to a class dict with index seq as a key
+        self.Index_seq_to_name[self.index] = self.name
+
     # Fundamental class functions str and repr
     def __repr__(self):
         return "Sample ID:{}\tName : {}\tINDEX : {}".format(self.ID, self.name, self.index)
 
     def __str__(self):
         return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
-    
+
     # Function allowing to acces objet self values with key (ex sample[id])
     def __getitem__(self, key):
         return self.__dict__[key]
-    
+
     #~~~~~~~PRIVATE METHODS~~~~~~~#
     def _is_dna (self, sequence):
         for base in sequence:
             if base not in self.DNA:
                 return False
         return True
-        
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #class Sample_aggregator(object):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Will received sample_name id = responssible for bufferized writting of fastq 
+# Will received sample_name id = responssible for bufferized writting of fastq
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
