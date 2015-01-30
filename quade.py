@@ -11,7 +11,7 @@ import gzip
 import HTSeq
 
 # Local imports
-from pyDNA.Utilities import is_readable_file, rm_blank, mkdir
+from pyDNA.Utilities import is_readable_file
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class Quade(object):
@@ -73,7 +73,7 @@ class Quade(object):
                 index_seq = cp.get(sample, "index1_seq")+(cp.get(sample, "index2_seq") if self.index2 else "")
                 # Create a autoreferenced Sample_identifier object
                 Sample_identifier(name = cp.get(sample, "name"), index = index_seq)
-            
+
             # Values are tested in a private function
             self._test_values()
 
@@ -184,7 +184,7 @@ class Quade(object):
                 # Extract index and molecular sequences from index read
                 index = i1.seq[self.index1_pos[0]:self.index1_pos[1]]
                 molecular = i1.seq[self.molecular1_pos[0]:self.molecular1_pos[1]]
-                
+
                 # Identify sample correspondance and verify index quality
                 sample_name = Sample_identifier.index_coresp(index)
                 if not self._quality_filter(i1):
@@ -205,17 +205,17 @@ class Quade(object):
         """
         sample_dict = {}
         for s1, s2, sample_name in out_list:
-            
+
             # Use of a exception handling to limit the number of test
             try:
                 # Add new reads to the sample
                 sample_dict[sample_name](s1, s2)
-            
+
             except KeyError:
                 # Create a new sample_aggretor  and add new reads to the sample
                 sample_dict[sample_name] = Sample_writer(sample_name)
                 sample_dict[sample_name](s1, s2)
-        
+
         for sample in sample_dict.values():
             sample.flush()
 
@@ -262,7 +262,7 @@ class Quade(object):
         for start, end in [self.index1_pos, self.index2_pos, self.molecular1_pos, self.molecular2_pos]:
             assert start >= 0
             assert end >= start
-        
+
     def _quality_filter(self, fastq):
 
         # test if all base are > minimal quality
@@ -340,29 +340,29 @@ class Sample_writer(object):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
     def __init__ (self, name):
-        
+
         # Define self variables
         self.name = name
-       
+
         # Counters
         self.total_pair = 0
         self.current_pair = 0
-        
+
         # Str aggregators
         self.R1_buffer = ""
         self.R2_buffer = ""
-        
+
         # File names
         self.R1_file = "./{}_R1.fastq.gz".format(self.name)
         self.R2_file = "./{}_R2.fastq.gz".format(self.name)
-        
+
         # Init empty files
         with gzip.open (self.R1_file, 'wb'):
             pass
         with gzip.open (self.R2_file, 'wb'):
             pass
-            
-        
+
+
     # Fundamental class functions str and repr
     #def __repr__(self):
         #return "SAMPLE\tName : {}\tINDEX : {}".format(self.name, self.index)
@@ -375,27 +375,27 @@ class Sample_writer(object):
         return self.__dict__[key]
 
     #~~~~~~~PUBLIC METHODS~~~~~~~#
-    
+
     def __call__(self, read1, read2):
-        
+
         self.R1_buffer += "@{}\n{}\n+\n{}\n".format(read1.name, read1.seq, read1.qualstr)
         self.R2_buffer += "@{}\n{}\n+\n{}\n".format(read2.name, read2.seq, read2.qualstr)
-        
+
         self.total_pair += 1
         self.current_pair += 1
-        
-        # If buffers contains more that 1000 sequences, write in file and reset the counter 
-        if self.current_pair >= 1000:
+
+        # If buffers contains more that 20 sequences, write in file and reset the counter
+        if self.current_pair >= 20:
             self.flush()
             self.current_pair = 0
 
     def flush(self):
-        
+
         # Append the content of the buffers in file and reset the buffers
         with gzip.open (self.R1_file, 'ab') as fastq_file:
             fastq_file.write(self.R1_buffer)
             self.R1_buffer = ""
-            
+
         with gzip.open (self.R2_file, 'ab') as fastq_file:
             fastq_file.write(self.R2_buffer)
             self.R2_buffer = ""
