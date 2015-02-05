@@ -1,0 +1,133 @@
+#########################################################################################
+#                                                                                       #
+#                            QUADE CONFIGURATION FILE                                   #
+#                                                                                       #
+#########################################################################################                                                    
+
+#   Values can by customized with users values, but the file template must remain unchanged, otherwise the program will not be able to load default values.
+#   Please follow the following recommendations :
+#   - File path should be indicated as absolute path preferably and should not contain blank spaces
+#   - Values identified with '**' in the descriptor are not recommended to be modified
+
+##########
+[quality]
+##########
+
+# Minimal mean quality of the index to consider a read pair valid (between 0 and 40). 0 if no filtering requested. (INTEGER)
+mean_qual : 30
+
+# Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering requested. (INTEGER)
+minimal_qual : 20
+
+# Quality format associated with reads autorized values are : solexa-old, solexa-old or phred. See HTSeq documentation for more details. (STRING)
+qual_scale : phred
+
+##########
+[fastq]
+##########
+
+# Path to the fastq files containing non demultiplexed sequences. Since fastq splited in several chunks of data a list of fastq can be given for each categories
+# chunks need to be indicated in the same order in all categories.   
+
+# list of path to chunks of fastq file containing the forward insert sequencing reads (usually R1)
+seq_R1 : ./fastq/R1_001_100000.fastq.gz ./fastq/R1_002_100000.fastq.gz ./fastq/R1_003_100000.fastq.gz
+
+# list of path to chunks of fastq file containing the reverse insert sequencing reads (usually R3)
+seq_R2 : ./fastq/R3_001_100000.fastq.gz ./fastq/R3_002_100000.fastq.gz ./fastq/R3_003_100000.fastq.gz
+
+# list of path to chunks of fastq file containing the first index reads (usually R2)
+index_R1 : ./fastq/R2_001_100000.fastq.gz ./fastq/R2_002_100000.fastq.gz ./fastq/R2_003_100000.fastq.gz
+
+# list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
+index_R2 : ./fastq/R2_001_100000.fastq.gz ./fastq/R2_002_100000.fastq.gz ./fastq/R2_003_100000.fastq.gz
+
+##########
+[index]
+##########
+
+# At the exception of index 1 which is mandatory, indicate by a boolean if the index is to be used or not.
+# If not you can leave the start and end sections empty, else indicate the start and end positions within in index read using 0 base coordinates
+
+# Sample index 1 start and end 1 based coordinates [MANDATORY] (INTEGERS)
+index1_start : 1
+index1_end : 6
+
+# Sample index 2 True if double indexing only (BOOLEAN)
+index2 : False
+# Sample index 2 start and end 1 based coordinates (INTEGERS)
+index2_start : 1
+index2_end : 6
+
+# Molecular index 1 True if stochastic index was added after sample index 1  (BOOLEAN)
+molecular1 : False
+# Molecular index 1 start and end 1 based coordinates (INTEGERS)
+molecular1_start : 6
+molecular1_end : 6
+
+# Molecular index 2 True if if double indexing only and stochastic index was added after sample index 2 (BOOLEAN)
+molecular2 : False
+# Molecular index 2 start and end 1 based coordinates (INTEGERS)
+molecular2_start : 6
+molecular2_end : 6
+
+##########
+[output]
+##########
+
+# Write fastq files containing reads whose sample is undetermined
+write_undetermined : True
+
+# Write separate fastq files for each sample containing reads whose index has a low quality
+write_fail : True
+
+# Write a txt report
+write_report : True
+
+###############################
+#    SAMPLE DEFINITIONS       #
+###############################
+
+# It is possible to include as many independant sample as required by duplicating a entire sample section and incrementing the id number in the sample section name
+# All sample name and index have to be uniq
+
+[sample1]
+# basename that will be used to prefix the read files (STRING)
+name : S1
+# Index sequences associated with the sample.Index 2 is used only in case of double indexing (STRING CONTAINING ONLY A T C G)
+index1_seq : ACAGTG
+index2_seq : ACAGTG
+
+[sample2]
+name : S2
+index1_seq : CTTGTA
+index2_seq : CTTGTA
+
+[sample3]
+name : S3
+index1_seq : AGTCAA
+index2_seq : AGTCAA
+
+[sample4]
+name : S4
+index1_seq : GTGAAA
+index2_seq : GTGAAA
+
+[sample5]
+name : S5
+index1_seq : TGACCA
+index2_seq : TGACCA
+
+[sample6]
+name : S6
+index1_seq : CAGATC
+index2_seq : CAGATC
+
+[sample7]
+name : S7
+index1_seq : GCCAAT
+index2_seq : GCCAAT
+
+[sample8]
+name : S8
+index1_seq : CGATGT
+index2_seq : CGATGT
