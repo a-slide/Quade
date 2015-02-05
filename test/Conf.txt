@@ -7,17 +7,13 @@
 #   Values can by customized with users values, but the file template must remain unchanged, otherwise the program will not be able to load default values.
 #   Please follow the following recommendations :
 #   - File path should be indicated as absolute path preferably and should not contain blank spaces
-#   - Values identified with '**' in the descriptor are not recommended to be modified
 
 ##########
 [quality]
 ##########
 
-# Minimal mean quality of the index to consider a read pair valid (between 0 and 40). 0 if no filtering requested. (INTEGER)
-mean_qual : 30
-
 # Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering requested. (INTEGER)
-minimal_qual : 20
+minimal_qual : 25
 
 # Quality format associated with reads autorized values are : solexa-old, solexa-old or phred. See HTSeq documentation for more details. (STRING)
 qual_scale : phred
@@ -30,16 +26,16 @@ qual_scale : phred
 # chunks need to be indicated in the same order in all categories.   
 
 # list of path to chunks of fastq file containing the forward insert sequencing reads (usually R1)
-seq_R1 : ./fastq/R1_001_100000.fastq.gz ./fastq/R1_002_100000.fastq.gz ./fastq/R1_003_100000.fastq.gz
+seq_R1 : ./local_dataset/R1_001_10000.fastq.gz ./local_dataset/R1_002_10000.fastq.gz ./local_dataset/R1_003_10000.fastq.gz
 
 # list of path to chunks of fastq file containing the reverse insert sequencing reads (usually R3)
-seq_R2 : ./fastq/R3_001_100000.fastq.gz ./fastq/R3_002_100000.fastq.gz ./fastq/R3_003_100000.fastq.gz
+seq_R2 : ./local_dataset/R3_001_10000.fastq.gz ./local_dataset/R3_002_10000.fastq.gz ./local_dataset/R3_003_10000.fastq.gz
 
 # list of path to chunks of fastq file containing the first index reads (usually R2)
-index_R1 : ./fastq/R2_001_100000.fastq.gz ./fastq/R2_002_100000.fastq.gz ./fastq/R2_003_100000.fastq.gz
+index_R1 : ./local_dataset/R2_001_10000.fastq.gz ./local_dataset/R2_002_10000.fastq.gz ./local_dataset/R2_003_10000.fastq.gz
 
 # list of path to chunks of fastq file containing the second index reads (usually R4) [if double indexing only]
-index_R2 : ./fastq/R2_001_100000.fastq.gz ./fastq/R2_002_100000.fastq.gz ./fastq/R2_003_100000.fastq.gz
+index_R2 :./local_dataset/R2_001_10000.fastq.gz ./local_dataset/R2_002_10000.fastq.gz ./local_dataset/R2_003_10000.fastq.gz
 
 ##########
 [index]
@@ -53,21 +49,21 @@ index1_start : 1
 index1_end : 6
 
 # Sample index 2 True if double indexing only (BOOLEAN)
-index2 : False
+index2 : True
 # Sample index 2 start and end 1 based coordinates (INTEGERS)
 index2_start : 1
 index2_end : 6
 
 # Molecular index 1 True if stochastic index was added after sample index 1  (BOOLEAN)
-molecular1 : False
+molecular1 : True
 # Molecular index 1 start and end 1 based coordinates (INTEGERS)
-molecular1_start : 6
+molecular1_start : 3
 molecular1_end : 6
 
 # Molecular index 2 True if if double indexing only and stochastic index was added after sample index 2 (BOOLEAN)
-molecular2 : False
+molecular2 : True
 # Molecular index 2 start and end 1 based coordinates (INTEGERS)
-molecular2_start : 6
+molecular2_start : 3
 molecular2_end : 6
 
 ##########
