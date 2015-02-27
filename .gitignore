@@ -55,7 +55,7 @@ docs/_build/
 # PyBuilder
 target/
 
-# do not git test folder content and quade executable
+# User specific paths
 /test/local_dataset/
 /test/test/
 /src/Quade
