@@ -57,5 +57,5 @@ target/
 
 # do not git test folder content and quade executable
 /test/local_dataset/
+/test/test/
 /src/Quade
-/
