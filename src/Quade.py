@@ -20,6 +20,7 @@ try:
     import sys
     import os
     import gzip
+    from time import time
 
     # Third party imports
     import numpy
@@ -33,27 +34,58 @@ except ImportError as E:
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class Quade(object):
+    """
+    Fastq file demultiplexer, handling double indexing, molecular indexing and filtering based
+    on index quality
+    """
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+    #~~~~~~~CLASS FIELDS~~~~~~~#
+
+    VERSION = "Quade 0.1"
+    USAGE = "Usage: %prog -c Conf.txt [-i -h]"
+
+    #~~~~~~~CLASS METHODS~~~~~~~#
+
+    @classmethod
+    def class_init (self):
+        """
+        init class method for instantiation from command line. Parse arguments parse CL arguments
+        """
+
+        # Define parser usage, options
+        optparser = optparse.OptionParser(usage = self.USAGE, version = self.VERSION)
+        optparser.add_option('-c', dest="conf_file",
+            help= "Path to the configuration file [Mandatory]")
+        optparser.add_option('-i', dest="init_conf", action='store_true',
+            help= "Generate an example configuration file and exit [Facultative]")
+
+        # Parse arguments
+        options, args = optparser.parse_args()
+
+        return Quade(options.conf_file, options.init_conf)
 
     #~~~~~~~FONDAMENTAL METHODS~~~~~~~#
 
-    def __init__ (self, conf_file = None):
-
+    def __init__ (self, conf_file=None, init_conf=None):
         """
-        Initialization function, parse options in command line and configuration file and verify
-        their values. All self.variables are initialized explicitly in init/
-        conf_file arg is mandatory in interactive interpreter and import, else optparse will parse
-        command line arguments
+        Initialization function, parse options from configuration file and verify their values.
+        All self.variables are initialized explicitly in init.
         """
-        print("Initialize quade")
-
         # Define fundamental variables
-        self.version = "quade 0.1"
-        self.usage = "Usage: %prog -c Conf.txt"
+        if init_conf:
+            print("Create an example configuration file in the current folder")
+            self._write_example_conf()
+            sys.exit(0)
 
-        # Use Conf file if interactive interpreter else parse arguments with optparse
-        self.conf = conf_file if conf_file else self._optparser()
+        # Verify conf file
+        if not conf_file:
+            print("A path to the configuration file is mandatory. See help -h for more details")
+            sys.exit(1)
 
+        self.conf = conf_file
+
+        print("Initialize Quade")
         # Parse the configuration file and verify the values of variables
         try:
             # Define a configuration file parser object and load the configuration file
@@ -112,7 +144,7 @@ class Quade(object):
                     write_pass=True ,
                     write_fail=self.write_fail,
                     minimal_qual=self.minimal_qual)
-                    
+
             # Create a Sample object for undetermined reads
             Sample (
                 name="Undetermined",
@@ -151,6 +183,9 @@ class Quade(object):
         """
         Main function of the script
         """
+        # Start a timer
+        start_time = time()
+
         # For double indexing
         if self.idx2:
             self.double_index_parser()
@@ -165,7 +200,7 @@ class Quade(object):
             print ("Generate_report")
             Sample.WRITE_REPORT()
 
-        print ("Done")
+        print ("Done in {}s".format(round(time()-start_time, 3)))
         return(0)
 
     def double_index_parser (self):
@@ -190,16 +225,16 @@ class Quade(object):
                     name = "fused_index",
                     qualstr = index1.qualstr[self.idx1_pos["start"]:self.idx1_pos["end"]] + index2.qualstr[self.idx2_pos["start"]:self.idx2_pos["end"]],
                     qualscale = self.qual_scale)
-                
+
                 molecular = HTSeq.SequenceWithQualities(
                     seq = index1.seq[self.mol1_pos["start"]:self.mol1_pos["end"]] + index2.seq[self.mol2_pos["start"]:self.mol2_pos["end"]],
                     name = "fused_molecular",
                     qualstr = index1.qualstr[self.mol1_pos["start"]:self.mol1_pos["end"]] + index2.qualstr[self.mol2_pos["start"]:self.mol2_pos["end"]],
                     qualscale = self.qual_scale)
-                
+
                 # Identify sample and verify index quality
                 Sample.FINDER (read1,read2, index, molecular)
-                
+
             # Update report
             if self.write_report:
                 Sample.WRITE_REPORT()
@@ -218,23 +253,23 @@ class Quade(object):
 
             # Iterate over read in fastq files and put each set in a list
             for read1, read2 ,index1 in zip (R1_gen, R2_gen, I1_gen):
-                
-                # Extract index and molecular sequences from index reads 
+
+                # Extract index and molecular sequences from index reads
                 index = HTSeq.SequenceWithQualities(
                     seq = index1.seq[self.idx1_pos["start"]:self.idx1_pos["end"]],
                     name = "index",
                     qualstr = index1.qualstr[self.idx1_pos["start"]:self.idx1_pos["end"]],
                     qualscale = self.qual_scale)
-                
+
                 molecular = HTSeq.SequenceWithQualities(
                     seq = index1.seq[self.mol1_pos["start"]:self.mol1_pos["end"]],
                     name = "molecular",
                     qualstr = index1.qualstr[self.mol1_pos["start"]:self.mol1_pos["end"]],
                     qualscale = self.qual_scale)
-                
+
                 # Identify sample and verify index quality
                 Sample.FINDER (read1,read2, index, molecular)
-                
+
             # Update report
             if self.write_report:
                 Sample.WRITE_REPORT()
@@ -242,30 +277,103 @@ class Quade(object):
 
     #~~~~~~~PRIVATE METHODS~~~~~~~#
 
-    def _optparser(self):
-        """
-        Parse CLI and return a valid configuration file path
-        """
-        # Define parser usage, options
-        optparser = optparse.OptionParser(usage = self.usage, version = self.version)
-        optparser.add_option('-c', dest="conf_file", help= "Path to the configuration file")
+    def _write_example_conf(self):
 
-        # Parse arguments
-        options, args = optparser.parse_args()
+        with open ("Example_conf_file.txt", 'wb') as fp:
+            fp.write ("""
+###################################################################################################
+#                                   QUADE CONFIGURATION FILE                                      #
+###################################################################################################
+# Values can by customized with users values, but the file template must remain unchanged,
+# otherwise the program will not be able to load default values.
 
-        # Verify conf file
-        if not options.conf_file:
-            optparser.print_help()
-            optparser.error("incorrect number of arguments")
+###################################################################################################
+[quality]
 
-        return options.conf_file
+# Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering
+required. (INTEGER)
+minimal_qual : 25
+
+# Quality format associated with reads authorized values are : solexa, solexa-old or phred. See
+# HTSeq documentation for more details. (STRING)
+qual_scale : phred
+
+###################################################################################################
+[fastq]
+
+# Path to the fastq files containing non demultiplexed sequences. Since fastq splited in several
+# chunks of data a list of fastq can be given for each categories, in the same order in all
+# categories. seq_R1 and seq_R2 are for the fastq files containing the insert sequencing reads,
+# index_R1 is for the first index read and index_R1 for the second index read (required if double
+# indexing only). Usually for simple indexing : seq_R1 = R1, seq_R2 = R3 and index_R1 = R2. For
+# double indexing: seq_R1 = R1, seq_R2 = R4, index_R1 = R2 and index_R2 = R3
+
+seq_R1 :   C1_R1.fastq.gz  C2_R1.fastq.gz  C3_R1.fastq.gz
+seq_R2 :   C1_R4.fastq.gz  C2_R4.fastq.gz  C3_R4.fastq.gz
+index_R1 : C1_R2.fastq.gz  C2_R2.fastq.gz  C3_R2.fastq.gz
+index_R2 : C1_R3.fastq.gz  C2_R3.fastq.gz  C3_R3.fastq.gz
+
+###################################################################################################
+[index]
+
+# At the exception of index 1 which is mandatory, indicate by a boolean if the index is to be used.
+# index 2 is used only if sample are double indexed, molecular1 if a molecular barcoding was
+# performed and molecular2 in case of double molecular indexing (BOOLEAN)
+index2 : True
+molecular1 : True
+molecular2 : True
+
+# Indicate the start and end positions of each index and molecular barcode within in index read
+# using 1 base coordinates. If an index is not in usage (from the previous section), the positions
+# of the index are not required(INTEGERS)
+index1_start : 1
+index1_end : 4
+index2_start : 1
+index2_end : 4
+molecular1_start : 4
+molecular1_end : 6
+molecular2_start : 4
+molecular2_end : 6
+
+###################################################################################################
+[output]
+
+# Write fastq files containing reads whose sample is undetermined
+write_undetermined : True
+
+# Write separate fastq files for each sample containing reads whose index has a low quality
+write_fail : True
+
+# Write a txt report
+write_report : True
+
+###################################################################################################
+# SAMPLE DEFINITIONS
+
+# It is possible to include as many independant sample as required by duplicating a entire sample
+# section. All sample name and index have to be unique and or to be organized as follow :
+#   [sampleX] = Sample identifier section, where X is the sample id number starting from 1 for the
+#   first sample and incrementing by 1 for each additional sample
+#   name = Unique identifier that will be used to prefix the read files (STRING)
+#   index1_seq = Index 1 DNA sequences associated with the sample (STRING)
+#   index2_seq = Similar to index 1, only in case of double indexing (STRING)
+
+[sample1]
+name : S1
+index1_seq : ACAG
+index2_seq : ATAG
+
+[sample2]
+name : S2
+index1_seq : CTTG
+index2_seq : TGTA""")
 
     def _test_values(self):
         """
         Test the validity of options in the configuration file
         """
         # Verify values from the quality section
-        assert self.qual_scale in ["solexa-old", "solexa-old", 'phred'], "Authorized values for quality_scale : solexa-old, solexa-old, phred"
+        assert self.qual_scale in ["solexa", "solexa-old", 'phred'], "Authorized values for quality_scale : solexa, solexa-old, phred"
         assert 0 <= self.minimal_qual <= 40, "Authorized values for minimal_qual : 0 to 40"
 
         # Verify values of the fastq section and readability of fastq files
@@ -291,7 +399,7 @@ class Quade(object):
         for fp in file_list:
             if not os.access(fp, os.R_OK):
                 raise ValueError ("{} is not a valid file".format(fp))
-                
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class Sample(object):
@@ -303,7 +411,7 @@ class Sample(object):
     BUFFER_SIZE = 20
     NAME_TO_SAMPLE = {}
     INDEX_TO_SAMPLE = {}
-    DNA = ["A","T","C","G", "N"]
+    DNA = ["A","T","C","G","N"]
 
     #~~~~~~~CLASS METHODS~~~~~~~#
 
@@ -326,7 +434,7 @@ class Sample(object):
         """
         # Look up in the sample dict access by INDEX sequence
         sample = self.INDEX_TO_SAMPLE.get(index.seq, self.NAME_TO_SAMPLE["Undetermined"])
-        
+
         # Call the Sample object by the __call__ method
         sample(read1, read2, index, molecular)
 
@@ -353,7 +461,7 @@ class Sample(object):
                 report.write ("\nSample Name\t{}\n".format(self.NAME_TO_SAMPLE[sample].name))
                 report.write ("\tIndex sequence\t{}\n".format(self.NAME_TO_SAMPLE[sample].index))
                 if self.NAME_TO_SAMPLE[sample].total == 0:
-                    report.write ("\tNo read found\n") 
+                    report.write ("\tNo read found\n")
                 else:
                     report.write ("\tTotal pair analysed\t{} ({}% all)\n".format(
                         self.NAME_TO_SAMPLE[sample].total,
@@ -375,7 +483,7 @@ class Sample(object):
 
         # Create self variables
         self.name = name
-        self.index = index 
+        self.index = index
         self.write_pass = write_pass
         self.write_fail = write_fail if minimal_qual > 0 else False # write fail if quality filtering only
         self.minimal_qual = minimal_qual
@@ -511,7 +619,7 @@ class Sample(object):
 
     def _flush_to_file (self, file, buffer):
         """
-        Flush str buffer in file 
+        Flush str buffer in file
         """
         with gzip.open (file, "ab") as fastq_file:
             fastq_file.write(buffer)
@@ -522,5 +630,5 @@ class Sample(object):
 
 if __name__ == '__main__':
 
-    quade = Quade()
+    quade = Quade.class_init()
     quade()
