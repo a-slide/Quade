@@ -72,22 +72,21 @@ class Quade(object):
         Initialization function, parse options from configuration file and verify their values.
         All self.variables are initialized explicitly in init.
         """
-        # Define fundamental variables
+
+        # Create a example conf file if needed
         if init_conf:
             print("Create an example configuration file in the current folder")
             self._write_example_conf()
             sys.exit(0)
 
-        # Verify conf file
-        if not conf_file:
-            print("A path to the configuration file is mandatory. See help -h for more details")
-            sys.exit(1)
-
-        self.conf = conf_file
-
         print("Initialize Quade")
         # Parse the configuration file and verify the values of variables
         try:
+
+            #verify if conf file was
+            assert conf_file, "A path to the configuration file is mandatory"
+            self.conf = conf_file
+
             # Define a configuration file parser object and load the configuration file
             cp = ConfigParser.RawConfigParser(allow_no_value=True)
             cp.read(self.conf)
@@ -291,7 +290,7 @@ class Quade(object):
 [quality]
 
 # Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering
-required. (INTEGER)
+# required. (INTEGER)
 minimal_qual : 25
 
 # Quality format associated with reads authorized values are : solexa, solexa-old or phred. See
