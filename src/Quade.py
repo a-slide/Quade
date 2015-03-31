@@ -19,23 +19,18 @@ try:
     import optparse
     import sys
     import os
-    import gzip
     from time import time
     from datetime import datetime
-
-    # Third party imports
-    import numpy
-    import HTSeq
 
     # Local imports
     from Sample import Sample
     from Conf_file import write_example_conf
+    from Fastq import FastqSeq, FastqReader
 
 except ImportError as E:
     print (E)
     print ("Please verify your dependencies. See Readme for more informations\n")
     exit()
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class Quade(object):
@@ -98,7 +93,6 @@ class Quade(object):
 
             # Quality section
             self.minimal_qual = cp.getint("quality", "minimal_qual")
-            self.qual_scale = cp.get("quality", "qual_scale")
 
             # Boolean flag of subindex presence
             self.idx1 = True
@@ -141,7 +135,7 @@ class Quade(object):
                 if self.idx2:
                     Sample(name=cp.get(sample, "name"), index=(cp.get(sample, "index1_seq")+cp.get(sample, "index2_seq")))
                 else:
-                    Sample(name=cp.get(sample, "name"), index_seq=cp.get(sample, "index1_seq"))
+                    Sample(name=cp.get(sample, "name"), index=cp.get(sample, "index1_seq"))
 
             # Values are tested in a private function
             self._test_values()
@@ -200,63 +194,61 @@ class Quade(object):
         # Iterate over fastq chunks for sequence and index reads
         for n, (R1, R2, I1, I2) in enumerate (zip (self.seq_R1, self.seq_R2, self.index_R1, self.index_R2)):
 
-            print("Parsing chunk {}/{}".format(n+1, len(self.seq_R1)))
+            print("Start parsing chunk {}/{}".format(n+1, len(self.seq_R1)))
 
-            # Init HTSeq fastq reader generator
-            R1_gen = HTSeq.FastqReader(R1, qual_scale=self.qual_scale)
-            R2_gen = HTSeq.FastqReader(R2, qual_scale=self.qual_scale)
-            I1_gen = HTSeq.FastqReader(I1, qual_scale=self.qual_scale)
-            I2_gen = HTSeq.FastqReader(I2, qual_scale=self.qual_scale)
+            # Init FastqReader generators
+            R1_gen = FastqReader(R1)
+            R2_gen = FastqReader(R2)
+            I1_gen = FastqReader(I1)
+            I2_gen = FastqReader(I2)
 
-            # Iterate over read in fastq files and put each set in a list
-            for read1, read2, index1, index2 in zip (R1_gen, R2_gen, I1_gen, I2_gen):
+            # Iterate over read in fastq files until it is exhaust
+            try:
+                while True:
+                    read1 = R1_gen.next()
+                    read2 = R2_gen.next()
+                    index1 = I1_gen.next()
+                    index2 = I2_gen.next()
 
-                # Extract index and molecular sequences from index reads and merge
-                index = HTSeq.SequenceWithQualities(
-                    seq = index1.seq[self.idx1_pos["start"]:self.idx1_pos["end"]] + index2.seq[self.idx2_pos["start"]:self.idx2_pos["end"]],
-                    name = "fused_index",
-                    qualstr = index1.qualstr[self.idx1_pos["start"]:self.idx1_pos["end"]] + index2.qualstr[self.idx2_pos["start"]:self.idx2_pos["end"]],
-                    qualscale = self.qual_scale)
+                    # Extract index and molecular sequences from index reads an
+                    index =     index1[self.idx1_pos["start"]:self.idx1_pos["end"]]+index2[self.idx2_pos["start"]:self.idx2_pos["end"]]
+                    molecular = index1[self.mol1_pos["start"]:self.mol1_pos["end"]]+index2[self.mol2_pos["start"]:self.mol2_pos["end"]]
 
-                molecular = HTSeq.SequenceWithQualities(
-                    seq = index1.seq[self.mol1_pos["start"]:self.mol1_pos["end"]] + index2.seq[self.mol2_pos["start"]:self.mol2_pos["end"]],
-                    name = "fused_molecular",
-                    qualstr = index1.qualstr[self.mol1_pos["start"]:self.mol1_pos["end"]] + index2.qualstr[self.mol2_pos["start"]:self.mol2_pos["end"]],
-                    qualscale = self.qual_scale)
+                    # Identify sample and verify index quality
+                    Sample.FINDER (read1,read2, index, molecular)
 
-                # Identify sample and verify index quality
-                Sample.FINDER (read1,read2, index, molecular)
+            except StopIteration as E:
+                print("\tEnd of chunk {}/{}".format(n+1))
 
     def simple_index_parser (self):
 
         # Iterate over fastq chunks for sequence and index reads
         for n, (R1, R2, I1) in enumerate (zip(self.seq_R1, self.seq_R2, self.index_R1)):
 
-            print("Parsing chunk {}/{}".format(n+1, len(self.seq_R1)))
+            print("Start parsing chunk {}/{}".format(n+1, len(self.seq_R1)))
 
-            # Init HTSeq fastq reader generator
-            R1_gen = HTSeq.FastqReader(R1, qual_scale=self.qual_scale)
-            R2_gen = HTSeq.FastqReader(R2, qual_scale=self.qual_scale)
-            I1_gen = HTSeq.FastqReader(I1, qual_scale=self.qual_scale)
+            # Init FastqReader generators
+            R1_gen = FastqReader(R1)
+            R2_gen = FastqReader(R2)
+            I1_gen = FastqReader(I1)
 
-            # Iterate over read in fastq files and put each set in a list
-            for read1, read2 ,index1 in zip (R1_gen, R2_gen, I1_gen):
+            # Iterate over read in fastq files until it is exhaust
+            try:
+                while True:
+                    read1 = R1_gen.next()
+                    read2 = R2_gen.next()
+                    index1 = I1_gen.next()
 
-                # Extract index and molecular sequences from index reads
-                index = HTSeq.SequenceWithQualities(
-                    seq = index1.seq[self.idx1_pos["start"]:self.idx1_pos["end"]],
-                    name = "index",
-                    qualstr = index1.qualstr[self.idx1_pos["start"]:self.idx1_pos["end"]],
-                    qualscale = self.qual_scale)
+                    # Extract index and molecular sequences from index reads
+                    index =     index1[self.idx1_pos["start"]:self.idx1_pos["end"]]
+                    molecular = index1.seq[self.mol1_pos["start"]:self.mol1_pos["end"]]
 
-                molecular = HTSeq.SequenceWithQualities(
-                    seq = index1.seq[self.mol1_pos["start"]:self.mol1_pos["end"]],
-                    name = "molecular",
-                    qualstr = index1.qualstr[self.mol1_pos["start"]:self.mol1_pos["end"]],
-                    qualscale = self.qual_scale)
+                    # Identify sample and verify index quality
+                    Sample.FINDER (read1,read2, index, molecular)
 
-                # Identify sample and verify index quality
-                Sample.FINDER (read1,read2, index, molecular)
+            except StopIteration as E:
+                print(E)
+                print("\tEnd of chunk {}".format(n+1))
 
     #~~~~~~~PRIVATE METHODS~~~~~~~#
 
@@ -264,7 +256,6 @@ class Quade(object):
         """ Test the validity of options in the configuration file """
 
         # Verify values from the quality section
-        assert self.qual_scale in ["solexa", "solexa-old", 'phred'], "Authorized values for quality_scale : solexa, solexa-old, phred"
         assert 0 <= self.minimal_qual <= 40, "Authorized values for minimal_qual : 0 to 40"
 
         # Verify values of the fastq section and readability of fastq files

@@ -72,9 +72,9 @@ class FastqWriter (object):
     def fastq_str (self, read, index, molecular=""):
         """Transform HTSeq objects in fastq str"""
         if molecular:
-            return "@{}:{}:{}\n{}\n+\n{}\n".format(read.name.split()[0], index.seq, molecular.seq, read.seq, read.qualstr)
+            return "@{}:{}:{}\n{}\n+\n{}\n".format(read.name, index.seq, molecular.seq, read.seq, read.qualstr)
         else:
-            return "@{}:{}\n{}\n+\n{}\n".format(read.name.split()[0], index.seq, read.seq, read.qualstr)
+            return "@{}:{}\n{}\n+\n{}\n".format(read.name, index.seq, read.seq, read.qualstr)
 
     def init_files (self):
         """Init empty files for R1 and R2.fastq.gz"""
