@@ -56,6 +56,5 @@ docs/_build/
 target/
 
 # User specific paths
-/test/local_dataset/
-/test/test/
-/src/Quade
+/test/local*
+

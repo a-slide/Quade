@@ -1,9 +1,8 @@
-#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 """
-@package    Sample
-@brief      Helper class for Quade
+@package    Quade
+@brief      Helper class for Quade to represent Samples
 @copyright  [GNU General Public License v2](http://www.gnu.org/licenses/gpl-2.0.html)
 @author     Adrien Leger - 2014
 * <adrien.leger@gmail.com>
@@ -158,13 +157,13 @@ class Sample(object):
         return (self.pass_qual+self.fail_qual)
 
     # Fundamental class functions str and repr
-    def __repr__(self):
+    def __str__(self):
         msg = "SAMPLE CLASS\n"
         for key, value in self.__dict__.items():
             msg+="\t{}\t{}\n".format(key, value)
         return (msg)
 
-    def __str__(self):
+    def __repr__(self):
         return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
 
     #~~~~~~~PRIVATE METHODS~~~~~~~#

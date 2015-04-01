@@ -42,7 +42,7 @@ class Quade(object):
 
     #~~~~~~~CLASS FIELDS~~~~~~~#
 
-    VERSION = "Quade 0.2"
+    VERSION = "Quade 0.3"
     USAGE = "Usage: %prog -c Conf.txt [-i -h]"
 
     #~~~~~~~CLASS METHODS~~~~~~~#
@@ -148,7 +148,7 @@ class Quade(object):
             print ("One of the value in the configuration file is not correct\n" + E.message)
             sys.exit(1)
 
-    def __repr__(self):
+    def __str__(self):
         msg = "QUADE CLASS\n\tParameters list\n"
         # list all values in object dict in alphabetical order
         keylist = [key for key in self.__dict__.keys()]
@@ -157,9 +157,8 @@ class Quade(object):
             msg+="\t{}\t{}\n".format(key, self.__dict__[key])
         return (msg)
 
-    def __str__(self):
+    def __repr__(self):
         return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
-
 
     #~~~~~~~PUBLIC METHODS~~~~~~~#
 
@@ -194,7 +193,7 @@ class Quade(object):
         # Iterate over fastq chunks for sequence and index reads
         for n, (R1, R2, I1, I2) in enumerate (zip (self.seq_R1, self.seq_R2, self.index_R1, self.index_R2)):
 
-            print("Start parsing chunk {}/{}".format(n+1, len(self.seq_R1)))
+            print("START PARSING CHUNK {}/{}".format(n+1, len(self.seq_R1)))
 
             # Init FastqReader generators
             R1_gen = FastqReader(R1)
@@ -218,7 +217,7 @@ class Quade(object):
                     Sample.FINDER (read1,read2, index, molecular)
 
             except StopIteration as E:
-                print("\tEnd of chunk {}/{}".format(n+1))
+                print("\tEnd of chunk {}".format(n+1))
 
     def simple_index_parser (self):
 
@@ -232,7 +231,7 @@ class Quade(object):
             R2_gen = FastqReader(R2)
             I1_gen = FastqReader(I1)
 
-            # Iterate over read in fastq files until it is exhaust
+            # Iterate over reads in fastq files until exhaustion
             try:
                 while True:
                     read1 = R1_gen.next()

@@ -1,9 +1,8 @@
-#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 """
-@package    FastqWriter
-@brief      Helper class for Sample
+@package    Quade
+@brief      Contain a class that Handle fastq writing
 @copyright  [GNU General Public License v2](http://www.gnu.org/licenses/gpl-2.0.html)
 @author     Adrien Leger - 2014
 * <adrien.leger@gmail.com>
@@ -35,13 +34,13 @@ class FastqWriter (object):
         self.R2_buffer = ""
 
     # Fundamental class functions str and repr
-    def __repr__(self):
+    def __str__(self):
         msg = "FASTQ_WRITER CLASS\n"
         for key, value in self.__dict__.items():
             msg+="\t\t{}\t{}\n".format(key, value)
         return (msg)
 
-    def __str__(self):
+    def __repr__(self):
         return "<Instance of {} from {} >\n".format(self.__class__.__name__, self.__module__)
 
     #~~~~~~~PUBLIC METHODS~~~~~~~#

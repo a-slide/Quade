@@ -1,10 +1,21 @@
-#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
+
+"""
+@package    Quade
+@brief      Contain a class to model a fastq sequence and an iterator function to read fastq files
+@copyright  [GNU General Public License v2](http://www.gnu.org/licenses/gpl-2.0.html)
+@author     Adrien Leger - 2014
+* <adrien.leger@gmail.com>
+* <adrien.leger@inserm.fr>
+* <adrien.leger@univ-nantes.fr>
+* [Github](https://github.com/a-slide)
+* [Atlantic Gene Therapies - INSERM 1089] (http://www.atlantic-gene-therapies.fr/)
+"""
 
 # Standard library imports
 from gzip import open as gopen
 
-    # Third party imports
+# Third party imports
 import numpy as np
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -66,16 +77,19 @@ class FastqSeq (object):
             descr = self.descr+other.descr)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# FUNCTIONS
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+def is_gz(fp):
+    """ Indicate if a file is gziped """
+    return fp[-2:].lower() == "gz"
 
 def FastqReader (fastq_file):
     """ Simple fastq reader returning a generator over a fastq file """
     try:
 
         # Open the file depending of the compression status
-        if fastq_file[-2:].lower() == "gz":
-            fastq = gopen(fastq_file, "rb")
-        else:
-            fastq = open(fastq_file, "rb")
+        fastq = gopen(fastq_file, "rb") if is_gz(fastq_file) else open(fastq_file, "rb")
         i=0
 
         # Iterate on the file until the end
