@@ -25,7 +25,7 @@ try:
     # Local imports
     from Sample import Sample
     from Conf_file import write_example_conf
-    from Fastq.FastqReader import FastqReader
+    from pyFastq.FastqReader import FastqReader
 
 except ImportError as E:
     print (E)
@@ -67,7 +67,7 @@ class Quade(object):
 
     #~~~~~~~FONDAMENTAL METHODS~~~~~~~#
 
-    def __init__ (self, conf_file=None, init_conf=None):
+    def __init__(self, conf_file=None, init_conf=None):
         """
         Initialization function, parse options from configuration file and verify their values.
         All self.variables are initialized explicitly in init.
@@ -83,8 +83,9 @@ class Quade(object):
         # Parse the configuration file and verify the values of variables
         try:
 
-            #verify if conf file was
+            # Verify if conf file was given and is valid
             assert conf_file, "A path to the configuration file is mandatory"
+            self._is_readable_file(conf_file)
             self.conf = conf_file
 
             # Define a configuration file parser object and load the configuration file
@@ -147,6 +148,9 @@ class Quade(object):
         except (ValueError, AssertionError) as E:
             print ("One of the value in the configuration file is not correct\n" + E.message)
             sys.exit(1)
+        except (IOError) as E:
+            print ("One of the file is incorrect or unreadable\n" + E.message)
+            sys.exit(1)
 
     def __str__(self):
         msg = "QUADE CLASS\n\tParameters list\n"
@@ -167,7 +171,7 @@ class Quade(object):
 
         start_time = time()
 
-        print ("Start parsing files")
+        print ("Start parsing files: {} chunks to be parsed".format(len(self.seq_R1)))
         # For double indexing
         if self.idx2:
             self.double_index_parser()
@@ -193,7 +197,7 @@ class Quade(object):
         # Iterate over fastq chunks for sequence and index reads
         for n, (R1, R2, I1, I2) in enumerate (zip (self.seq_R1, self.seq_R2, self.index_R1, self.index_R2)):
 
-            print("START PARSING CHUNK {}/{}".format(n+1, len(self.seq_R1)))
+            print("Start parsing chunk {}".format(n+1))
 
             # Init FastqReader generators
             R1_gen = FastqReader(R1)
@@ -261,24 +265,23 @@ class Quade(object):
         if self.idx2:
             assert len(self.seq_R1) == len(self.seq_R2) == len(self.index_R1) == len(self.index_R2) > 0,\
             "seq_R1, seq_R2, index_R1 and index_R2 are mandatory and have to contain the same number of files"
-            self._is_readable_file (self.seq_R1 + self.seq_R2 + self.index_R1 + self.index_R2)
+            for fp in (self.seq_R1 + self.seq_R2 + self.index_R1 + self.index_R2):
+                self._is_readable_file (fp)
         else:
             assert len(self.seq_R1) == len(self.seq_R2) == len(self.index_R1) > 0,\
             "seq_R1, seq_R2 and index_R1 are mandatory and have to contain the same number of files"
-            self._is_readable_file (self.seq_R1 + self.seq_R2 + self.index_R1)
+            for fp in (self.seq_R1 + self.seq_R2 + self.index_R1):
+                self._is_readable_file (fp)
 
         # Verify values of the index section
         for pos in [self.idx1_pos, self.idx2_pos, self.mol1_pos, self.mol2_pos]:
             assert pos["start"] >= 0
             assert pos["end"] >= pos["start"]
 
-
-    def _is_readable_file (self, file_list):
+    def _is_readable_file (self, fp):
         """ Verify the readability of a file or list of file """
-
-        for fp in file_list:
-            if not os.access(fp, os.R_OK):
-                raise ValueError ("{} is not a valid file".format(fp))
+        if not os.access(fp, os.R_OK):
+            raise IOError ("{} is not a valid file".format(fp))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #   TOP LEVEL INSTRUCTIONS

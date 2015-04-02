@@ -24,7 +24,7 @@ Specific features:
 ## Principle
 
 1. A configuration file containing all program parameters (including sample/index association) is parsed and thoroughly verified for validity
-2. Non demultiplexed fastq files are read chunks by chunks, with reads from sample read1, sample read2, index read1 [and index read2] in different files.
+2. Non demultiplexed fastq files are read with a custom fastq parser (pyFastq Submodule) chunks by chunks, with reads from sample read1, sample read2, index read1 [and index read2] in different files.
 3. sample barcode and molecular index sequence are extracted from index read. In the case of double indexing sample barcode is the result of the fusion between sample barcode from index1 and index2. The same applies for molecular index 
 4. Depending of the index (or fused index) sequence, sample reads1 and read2 are attributed to a defined sample, or to the undetermined category if appropriate.
 5. The phred quality of the index read is checked so as every positions is above a defined minimal value. If so reads are written in a sample **pass** file, else reads are written in a sample **fail** file.
@@ -44,7 +44,7 @@ If you have pip already installed, enter the following line to install packages:
 
 ## Get and install Quade
 
-* Clone the repository or download the archive ```git clone https://github.com/a-slide/Quade.git```
+* Clone the repository in **recursive mode** to download the main repo and its submodules ```git clone --recursive https://github.com/a-slide/Quade.git```
 
 * Enter the src folder of the program folder and make the main script executable ```sudo chmod u+x Quade.py```
 
