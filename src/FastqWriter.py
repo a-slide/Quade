@@ -48,7 +48,7 @@ class FastqWriter (object):
     def __call__ (self, read1, read2, index, molecular=""):
         """
         Init files at first call and append in the files via str buffers
-        read1, read2, index and molecular are HTSeq sequence with quality objects
+        read1, read2, index and molecular are FastqSeq sequence
         """
 
         # Create the file when the first pair of fastq sequence is added
@@ -58,22 +58,20 @@ class FastqWriter (object):
 
         # Increment the sequence counter and fill the str buffers
         self.counter += 1
-        self.R1_buffer += self.fastq_str (read1, index, molecular)
-        self.R2_buffer += self.fastq_str (read2, index, molecular)
+        if molecular:
+            read1.name += ":{}:{}".format(index.seq, molecular.seq)
+            read2.name += ":{}:{}".format(index.seq, molecular.seq)
+        else:
+            read1.name += ":{}".format(index.seq)
+            read2.name += ":{}".format(index.seq)
+
+        self.R1_buffer += read1.fastqstr
+        self.R2_buffer += read1.fastqstr
 
         # Flush the buffers each time they reach the size of the max buffer size
         if self.counter == self.buffer_size:
             self.flush_buffers ()
             self.counter = 0
-
-    #~~~~~~~PUBLIC METHODS~~~~~~~#
-
-    def fastq_str (self, read, index, molecular=""):
-        """Transform HTSeq objects in fastq str"""
-        if molecular:
-            return "@{}:{}:{}\n{}\n+\n{}\n".format(read.name, index.seq, molecular.seq, read.seq, read.qualstr)
-        else:
-            return "@{}:{}\n{}\n+\n{}\n".format(read.name, index.seq, read.seq, read.qualstr)
 
     def init_files (self):
         """Init empty files for R1 and R2.fastq.gz"""

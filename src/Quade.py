@@ -25,7 +25,7 @@ try:
     # Local imports
     from Sample import Sample
     from Conf_file import write_example_conf
-    from Fastq import FastqSeq, FastqReader
+    from Fastq.FastqReader import FastqReader
 
 except ImportError as E:
     print (E)
