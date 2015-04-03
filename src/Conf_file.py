@@ -21,7 +21,8 @@ def write_example_conf():
 ###################################################################################################
 # Values can by customized with users values, but the file template must remain unchanged,
 # otherwise the program will not be able to load default values.
-# - Values identified with '**' in the descriptor are not recommended to be modified
+# File path should be indicated as absolute path preferably and should not contain blank spaces
+# Values identified with '**' in the descriptor are not recommended to be modified
 
 ###################################################################################################
 [quality]
