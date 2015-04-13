@@ -42,7 +42,7 @@ class Quade(object):
 
     #~~~~~~~CLASS FIELDS~~~~~~~#
 
-    VERSION = "Quade 0.3"
+    VERSION = "Quade 0.3.1"
     USAGE = "Usage: %prog -c Conf.txt [-i -h]"
 
     #~~~~~~~CLASS METHODS~~~~~~~#
