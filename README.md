@@ -78,8 +78,5 @@ See Blog post [Starting a new NGS project with python : Example with a fastq dem
 
 ## Authors and Contact
 
-Adrien Leger - 2014
-
-* <adrien.leger@gmail.com> - <adrien.leger@inserm.fr> - <adrien.leger@univ-nantes.fr>
-* [Github](https://github.com/a-slide)
-* [Atlantic Gene Therapies - INSERM 1089](http://www.atlantic-gene-therapies.fr/)
+Adrien Leger <aleg@ebi.ac.uk> @a-slide
+Emilie Lecomte <emilie.lecomte@univ-nantes.fr> @emlec
