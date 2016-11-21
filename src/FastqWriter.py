@@ -66,7 +66,7 @@ class FastqWriter (object):
             read2.name += ":{}".format(index.seq)
 
         self.R1_buffer += read1.fastqstr
-        self.R2_buffer += read1.fastqstr
+        self.R2_buffer += read2.fastqstr
 
         # Flush the buffers each time they reach the size of the max buffer size
         if self.counter == self.buffer_size:
@@ -78,7 +78,7 @@ class FastqWriter (object):
         with gopen (self.R1_fastq_name, "wb") as fastq_file:
             print("\tCreate {} file".format(self.R1_fastq_name))
         with gopen (self.R2_fastq_name, "wb") as fastq_file:
-            print("\tCreate {} file".format(self.R1_fastq_name))
+            print("\tCreate {} file".format(self.R2_fastq_name))
 
     def flush_buffers (self):
         """Append to R1 and R2 fastq.gz files"""
