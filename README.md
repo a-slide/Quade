@@ -1,4 +1,4 @@
-# Quade 0.3.1
+# Quade 0.3.2
 
 **Fastq files demultiplexer, handling double indexing, molecular indexing and filtering based on index quality (Pure Python2.7)**
 
@@ -6,7 +6,7 @@
 
 **Creation : 2015/01/07**
 
-**Last update : 2015/04/13** 
+**Last update : 2016/11/21** 
 
 ## Motivation
 
