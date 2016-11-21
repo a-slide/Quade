@@ -1,47 +1,35 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Quade : Demultiplexer for PAIRED fastq files based on index sequence and PHRED quality">
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Quade</title>
+    <meta charset="UTF-8">
+    <title>Quade by a-slide</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Quade</h1>
+      <h2 class="project-tagline">Demultiplexer for PAIRED fastq files based on index sequence and PHRED quality</h2>
+      <a href="https://github.com/a-slide/Quade" class="btn">View on GitHub</a>
+      <a href="https://github.com/a-slide/Quade/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/a-slide/Quade/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/a-slide/Quade">View on GitHub</a>
+    <section class="main-content">
+      <h1>
+<a id="quade-032" class="anchor" href="#quade-032" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Quade 0.3.2</h1>
 
-          <h1 id="project_title">Quade</h1>
-          <h2 id="project_tagline">Demultiplexer for PAIRED fastq files based on index sequence and PHRED quality</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/a-slide/Quade/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/a-slide/Quade/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>
-<a id="quade" class="anchor" href="#quade" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quade</h1>
-
-<p><strong>Fastq file demultiplexer, handling double indexing, molecular indexing and filtering based on index quality</strong></p>
+<p><strong>Fastq files demultiplexer, handling double indexing, molecular indexing and filtering based on index quality (Pure Python2.7)</strong></p>
 
 <p><strong>Creation : 2015/01/07</strong></p>
 
-<p><strong>Last update : 2015/03/30</strong> </p>
+<p><strong>Last update : 2016/11/21</strong> </p>
 
 <h2>
-<a id="motivation" class="anchor" href="#motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation</h2>
+<a id="motivation" class="anchor" href="#motivation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Motivation</h2>
 
 <p>Quade is a <strong>python2.7</strong> object oriented script developed to demultiplex sample from mixed fastq files.</p>
 
@@ -57,11 +45,11 @@
 <p><img src="https://raw.githubusercontent.com/a-slide/Quade/master/doc/img/modified_illumina_adapters.png" alt="Double index"></p>
 
 <h2>
-<a id="principle" class="anchor" href="#principle" aria-hidden="true"><span class="octicon octicon-link"></span></a>Principle</h2>
+<a id="principle" class="anchor" href="#principle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Principle</h2>
 
 <ol>
 <li>A configuration file containing all program parameters (including sample/index association) is parsed and thoroughly verified for validity</li>
-<li>Non demultiplexed fastq files are read chunks by chunks, with reads from sample read1, sample read2, index read1 [and index read2] in different files.</li>
+<li>Non demultiplexed fastq files are read with a custom fastq parser (pyFastq Submodule) chunks by chunks, with reads from sample read1, sample read2, index read1 [and index read2] in different files.</li>
 <li>sample barcode and molecular index sequence are extracted from index read. In the case of double indexing sample barcode is the result of the fusion between sample barcode from index1 and index2. The same applies for molecular index </li>
 <li>Depending of the index (or fused index) sequence, sample reads1 and read2 are attributed to a defined sample, or to the undetermined category if appropriate.</li>
 <li>The phred quality of the index read is checked so as every positions is above a defined minimal value. If so reads are written in a sample <strong>pass</strong> file, else reads are written in a sample <strong>fail</strong> file.</li>
@@ -73,29 +61,28 @@
 <p><img src="https://raw.githubusercontent.com/a-slide/Quade/master/doc/img/quade-io.png" alt="Quade"></p>
 
 <h2>
-<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies</h2>
 
-<p>The program was developed under Linux Mint 17 and require a python 2.7 environment.
-The following dependencies are required for proper program execution:</p>
+<p>The program was developed under Linux Mint 17 and was not tested with other OS.
+In addition to python2.7 the following dependencies are required for proper program execution:</p>
 
 <ul>
 <li>python package <a href="http://www.numpy.org/">numpy</a> 1.7.1+</li>
-<li>python package <a href="http://www-huber.embl.de/users/anders/HTSeq/doc/index.html#">HTSeq</a> 0.6.1p1+</li>
 </ul>
 
 <p>If you have pip already installed, enter the following line to install packages: <code>sudo pip install numpy HTSeq</code></p>
 
 <h2>
-<a id="get-and-install-quade" class="anchor" href="#get-and-install-quade" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get and install Quade</h2>
+<a id="get-and-install-quade" class="anchor" href="#get-and-install-quade" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get and install Quade</h2>
 
 <ul>
-<li><p>Clone the repository or download the archive <code>git clone https://github.com/a-slide/Quade.git</code></p></li>
+<li><p>Clone the repository in <strong>recursive mode</strong> to download the main repo and its submodules <code>git clone --recursive https://github.com/a-slide/Quade.git</code></p></li>
 <li><p>Enter the src folder of the program folder and make the main script executable <code>sudo chmod u+x Quade.py</code></p></li>
-<li><p>Finally, Add Quade.py to your PATH</p></li>
+<li><p>Finally, add Quade.py to your PATH</p></li>
 </ul>
 
 <h2>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>In the folder where fastq files will be created</p>
 
@@ -109,44 +96,38 @@ Options:
 </code></pre>
 
 <p>An example configuration file can be generated by running the program with the option -i
-The configuration of options is described directly in the configuration file.
+The possible options are extensively described in the configuration file.
 The program can be tested from the test folder with the dataset provided and the default configuration file.</p>
 
 <pre><code>cd ./test/result
 Quade.py -i
-Quade.py -c Conf_file.txt
+Quade.py -c Quade_conf_file.txt
 
 </code></pre>
 
 <h2>
-<a id="additional-information" class="anchor" href="#additional-information" aria-hidden="true"><span class="octicon octicon-link"></span></a>Additional information</h2>
+<a id="additional-information" class="anchor" href="#additional-information" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Additional information</h2>
 
 <p>See Blog post <a href="http://a-slide.github.io/blog/fastq_demultiplexer">Starting a new NGS project with python : Example with a fastq demultiplexer</a></p>
 
 <h2>
-<a id="authors-and-contact" class="anchor" href="#authors-and-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contact</h2>
-
-<p>Adrien Leger - 2014</p>
+<a id="authors-and-contact" class="anchor" href="#authors-and-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contact</h2>
 
 <ul>
-<li>
-<a href="mailto:adrien.leger@gmail.com">adrien.leger@gmail.com</a> - <a href="mailto:adrien.leger@inserm.fr">adrien.leger@inserm.fr</a> - <a href="mailto:adrien.leger@univ-nantes.fr">adrien.leger@univ-nantes.fr</a>
+<li>Adrien Leger <a href="mailto:aleg@ebi.ac.uk">aleg@ebi.ac.uk</a> <a href="https://github.com/a-slide" class="user-mention">@a-slide</a>
 </li>
-<li><a href="https://github.com/a-slide">Github</a></li>
-<li><a href="http://www.atlantic-gene-therapies.fr/">Atlantic Gene Therapies - INSERM 1089</a></li>
+<li>Emilie Lecomte <a href="mailto:emilie.lecomte@univ-nantes.fr">emilie.lecomte@univ-nantes.fr</a> <a href="https://github.com/emlec" class="user-mention">@emlec</a>
+</li>
 </ul>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Quade maintained by <a href="https://github.com/a-slide">a-slide</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/a-slide/Quade">Quade</a> is maintained by <a href="https://github.com/a-slide">a-slide</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
-    </div>
 
-    
+    </section>
 
+  
   </body>
 </html>
