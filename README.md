@@ -78,5 +78,5 @@ See Blog post [Starting a new NGS project with python : Example with a fastq dem
 
 ## Authors and Contact
 
-Adrien Leger <aleg@ebi.ac.uk> @a-slide
-Emilie Lecomte <emilie.lecomte@univ-nantes.fr> @emlec
+* Adrien Leger <aleg@ebi.ac.uk> @a-slide
+* Emilie Lecomte <emilie.lecomte@univ-nantes.fr> @emlec
