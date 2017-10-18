@@ -29,7 +29,7 @@ def write_example_conf():
 # The quality encoding of your sequence have to be Illumina 1.8+ Phred+33. The program does not
 # manage the other encoding scales
 
-# Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering
+# Minimal quality for each base of the index to consider a read pair valid. 0 if no filtering
 # required. (INTEGER)
 minimal_qual : 25
 
