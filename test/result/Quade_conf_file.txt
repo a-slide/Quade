@@ -4,14 +4,15 @@
 ###################################################################################################
 # Values can by customized with users values, but the file template must remain unchanged,
 # otherwise the program will not be able to load default values.
-# - Values identified with '**' in the descriptor are not recommended to be modified
+# File path should be indicated as absolute path preferably and should not contain blank spaces
+# Values identified with '**' in the descriptor are not recommended to be modified
 
 ###################################################################################################
 [quality]
 # The quality encoding of your sequence have to be Illumina 1.8+ Phred+33. The program does not
 # manage the other encoding scales
 
-# Minimal quality for one base of the index to consider a read pair valid. 0 if no filtering
+# Minimal quality for each base of the index to consider a read pair valid. 0 if no filtering
 # required. (INTEGER)
 minimal_qual : 25
 
